@@ -168,7 +168,7 @@ class SheetOrder:
         sleep(2)
 
     def order_sheet_template(self):
-        order_type = self.driver.find_element(By.XPATH, value="//span[@class='k-searchbar']//input")
+        order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
         order_type.send_keys(self.order_type + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
@@ -188,6 +188,7 @@ class SheetOrder:
         sleep(1)
         self.save_within()
         self.register_order_btn()
+        print("hi")
 
     def order_research_without_template(self):
         order_type = self.driver.find_element(By.XPATH, value="//span[@class='k-searchbar']//input")
@@ -453,7 +454,7 @@ class SheetOrder:
         ok_btn.click()
         sleep(3)
 
-    def export_order(self):
+    def export_order(self):                # Export icon
         exp_icon = self.driver.find_element(By.XPATH, "(//button[@class='k-button k-button-icon']//span)[3]")
         exp_icon.click()
         sleep(1)
@@ -465,12 +466,12 @@ class SheetOrder:
         save_btn.click()
         sleep(5)
 
-    def attachments_inside_order(self):  # Attachments inside order
+    def attachments_inside_order(self):     # Attachments icon
         attachments_btn = self.driver.find_element(By.XPATH, "//button[@title='Attachments']//i[1]")
         attachments_btn.click()
         sleep(2)
         file_input = self.driver.find_element(By.ID, "fileInputobj")
-        file_path = self.attach_path  # File import from WINDOWS folder
+        file_path = self.attach_path        # File import from WINDOWS folder
         file_input.send_keys(file_path)
         sleep(3)
         self.driver.find_element(By.XPATH, "//div[@class='fp-well']//button[1]").click()
