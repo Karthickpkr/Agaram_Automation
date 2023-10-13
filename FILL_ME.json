@@ -1,0 +1,82 @@
+{
+  "LOGIN":
+  {   "url": "https://logilabelndevelopement.azurewebsites.net/#agaram",
+	  "username": "Administrator",
+	  "password": "admin01"
+  },
+
+  "FOLDER CREATION AND RENAME":
+  {
+	  "folder_name": "Hoi",
+	  "rename_folder": "ELN"
+  },
+
+  "ORDER SHEET TEMPLATE":
+  {
+	  "order_type": "ELN Order - with Template",
+	  "projects": "Order with template",
+	  "task": "Automation 2",
+	  "sample": "Python",
+	  "keyword": "Automation"
+  },
+
+  "MANUAL ORDER ID PROCESS":
+  {
+	  "order_id_manual": ""
+  },
+
+  "GENERAL FIELDS SHEET ORDER":
+  {
+	  "ALERT":
+	  {
+		  "notify_before_days": "2",
+		  "alert_summary": "2 days before"
+	  },
+	  "MANDATORY FIELD":
+	  {
+		  "mandatory_value": "So what"
+	  },
+	  "MANUAL DATA AND TIME":
+	  {
+		  "manual_date_time": "11/10/2023 02:02:59 pm"
+	  },
+	  "MANUAL FIELD":
+	  {
+		  "manual_field": "ELN Automation"
+	  },
+	  "MANUAL TIME":
+	  {
+		  "manual_time": "10:15 PM"
+	  },
+	  "NUMERIC FIELD":
+	  {
+		  "numeric_field": "4"
+	  },
+	  "TEXT WRAPPER":
+	  {
+		  "text_wrap": "Hello ELN sheet order - Python selenium"
+	  },
+	  "E-SIGN":
+	  {
+		  "esign_pwd": "admin01",
+		  "esign_cmts": "general fields filled by automation"
+	  }
+  },
+
+  "ICONS":
+  {
+	  "HYPERLINK":
+	  {
+      		"hyper_link": "https://logilabelndevelopement.azurewebsites.net/#agaram"
+	  },
+	  "ATTACHMENTS":
+	  {
+			"attach_path": "E:\\ELN\\Sample Template.json"
+	  }
+  },
+
+  "ORDER WORKFLOW":
+  	{
+    "work_flow_steps": "6"
+  	}
+}
