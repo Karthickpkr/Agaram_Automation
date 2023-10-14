@@ -13,6 +13,7 @@ from time import sleep
 class SheetOrder:
 
     def __init__(self):
+        self.module_name = None
         self.order_id = None
         self.order_id_manual = None
         self.export_order_id = None
@@ -40,6 +41,7 @@ class SheetOrder:
         self.order_type = self.data['ORDER SHEET TEMPLATE']['order_type']
         self.projects = self.data['ORDER SHEET TEMPLATE']['projects']
         self.task = self.data['ORDER SHEET TEMPLATE']['task']
+        self.select_sheet_temp = self.data['ORDER SHEET TEMPLATE']['select_sheet_temp']
         self.sample = self.data['ORDER SHEET TEMPLATE']['sample']
         self.keyword = self.data['ORDER SHEET TEMPLATE']['keyword']
 
@@ -76,12 +78,28 @@ class SheetOrder:
         sleep(12)
         print(self.driver.title)
 
+    def search_module(self):
+        action = ActionChains(self.driver)
+        search_box = self.driver.find_element(By.XPATH, "//form[@class='inline-form-search']//input[1]")
+        action.click(search_box).send_keys(self.module_name).perform()
+        sleep(2)
+        module_click = self.driver.find_element(By.XPATH, "//span[@class='list-icon-view']//span")
+        action.click(module_click).perform()
+        sleep(10)
+
     def orders(self):
         # ele = WebDriverWait(self.driver, 50)
         # ele.until(ec.visibility_of_element_located((By.XPATH,
-        #                                             "//div[@id='bodycontent']/div[5]/div[3]/div[3]/div[1]/div[2]")))
-        self.driver.find_element(By.ID, "left-tabs-example-tab-SheetView").click()
-        sleep(2)
+        #                                   "//div[@id='bodycontent']/div[5]/div[3]/div[3]/div[1]/div[2]")))
+        try:
+            self.driver.find_element(By.ID, "left-tabs-example-tab-SheetView").click()
+            sleep(2)
+            self.register_sheet_orders()
+        except NoSuchElementException:
+            print("NoSuchElementException:", "Can't find Orders button at left so global search will work  ")
+            if NoSuchElementException:
+                self.module_name = "Sheet Orders"
+                self.search_module()
 
     def register_sheet_orders(self):
         self.driver.find_element(By.XPATH, "//a[@href='/registertask']//span[1]").click()
@@ -93,7 +111,6 @@ class SheetOrder:
         sleep(7)
 
     def new_folder(self):
-
         new_folder = self.driver.find_element(By.XPATH, "//button[contains(@class,'k-button btn')]//span[1]")
         new_folder.click()
         sleep(1)
@@ -168,6 +185,7 @@ class SheetOrder:
         sleep(2)
 
     def order_sheet_template(self):
+        action = ActionChains(self.driver)
         order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
         order_type.send_keys(self.order_type + Keys.ENTER)
         sleep(1)
@@ -177,65 +195,80 @@ class SheetOrder:
         task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
         task.send_keys(self.task + Keys.ENTER)
         sleep(1)
+
+        if ("No sheet templates have been mapped with this task".upper()
+                == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
+            task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
+            task.clear()
+            task.send_keys("Automation 2" + Keys.ENTER)
+            sleep(2)
+
         select_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
         select_sample.send_keys(self.sample + Keys.ENTER)
         sleep(1)
-        # select_sheet_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
-        # select_sheet_template.send_keys("Default" + Keys.ENTER)
-        # sleep(1)
+
+        if self.select_sheet_temp != "":
+            select_sheet_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
+            select_sheet_template.send_keys(self.select_sheet_temp + Keys.ENTER)
+            sleep(1)
+
         keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
         keyword.send_keys(self.keyword)
         sleep(1)
         self.save_within()
         self.register_order_btn()
 
+        if ("PLEASE SELECT THE SHEET"
+                == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
+            print("please select the sheet")
+
     def order_research_without_template(self):
         order_type = self.driver.find_element(By.XPATH, value="//span[@class='k-searchbar']//input")
-        order_type.send_keys("Res" + Keys.ENTER)
+        order_type.send_keys(self.order_type + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
-        projects.send_keys("Order without template" + Keys.ENTER)
+        projects.send_keys(self.projects + Keys.ENTER)
         sleep(1)
         task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
-        task.send_keys("Automation 1" + Keys.ENTER)
+        task.send_keys(self.task + Keys.ENTER)
         sleep(2)
         select_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
-        select_sample.send_keys("Pyt" + Keys.ENTER)
+        select_sample.send_keys(self.sample + Keys.ENTER)
         sleep(1)
         select_sheet_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
-        select_sheet_template.send_keys("Default" + Keys.ENTER)
+        select_sheet_template.send_keys(self.select_sheet_temp + Keys.ENTER)
         sleep(1)
         keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
-        keyword.send_keys("Automation Test 2")
+        keyword.send_keys(self.keyword)
         sleep(1)
         self.save_within()
         self.register_order_btn()
 
     def excel_order(self):
         order_type = self.driver.find_element(by="xpath", value="//span[@class='k-searchbar']//input")
-        order_type.send_keys("Excel" + Keys.ENTER)
+        order_type.send_keys(self.order_type + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
-        projects.send_keys("Excel order" + Keys.ENTER)
+        projects.send_keys(self.projects + Keys.ENTER)
         sleep(2)
         select_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
-        select_sample.send_keys("Pyt" + Keys.ENTER)
+        select_sample.send_keys(self.sample + Keys.ENTER)
         sleep(1)
         keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
-        keyword.send_keys("Automation Test 3")
+        keyword.send_keys(self.keyword)
         sleep(1)
         self.save_within()
         self.register_order_btn()
 
     def sheet_validation(self):
         order_type = self.driver.find_element(by="xpath", value="//span[@class='k-searchbar']//input")
-        order_type.send_keys("sheet" + Keys.ENTER)
+        order_type.send_keys(self.order_type + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
-        projects.send_keys("Sheet validation" + Keys.ENTER)
+        projects.send_keys(self.projects + Keys.ENTER)
         sleep(1)
         keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
-        keyword.send_keys("Automation Test 4")
+        keyword.send_keys(self.keyword)
         sleep(1)
         self.save_within()
         self.register_order_btn()
@@ -453,7 +486,7 @@ class SheetOrder:
         ok_btn.click()
         sleep(3)
 
-    def export_order(self):                # Export icon
+    def export_order(self):  # Export icon
         exp_icon = self.driver.find_element(By.XPATH, "(//button[@class='k-button k-button-icon']//span)[3]")
         exp_icon.click()
         sleep(1)
@@ -465,12 +498,12 @@ class SheetOrder:
         save_btn.click()
         sleep(5)
 
-    def attachments_inside_order(self):     # Attachments icon
+    def attachments_inside_order(self):  # Attachments icon
         attachments_btn = self.driver.find_element(By.XPATH, "//button[@title='Attachments']//i[1]")
         attachments_btn.click()
         sleep(2)
         file_input = self.driver.find_element(By.ID, "fileInputobj")
-        file_path = self.attach_path        # File import from WINDOWS folder
+        file_path = self.attach_path  # File import from WINDOWS folder
         file_input.send_keys(file_path)
         sleep(3)
         self.driver.find_element(By.XPATH, "//div[@class='fp-well']//button[1]").click()
@@ -626,7 +659,6 @@ if __name__ == '__main__':
     so = SheetOrder()
     so.login()
     so.orders()
-    so.register_sheet_orders()
 
     # so.home_folders()
     # so.new_folder()
@@ -636,12 +668,12 @@ if __name__ == '__main__':
     so.register_btn()
     so.order_sheet_template()
 
-    so.process_order()
+    # so.process_order()
     # so.attachments_inside_order()
     # so.export_order()
-    so.data_fill_sheet_order()
-    so.save_sheet_order()
-    so.order_workflow()
+    # so.data_fill_sheet_order()
+    # so.save_sheet_order()
+    # so.order_workflow()
 
     # so.register_btn()
     # so.order_research_without_template()
