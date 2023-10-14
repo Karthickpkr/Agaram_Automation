@@ -188,7 +188,6 @@ class SheetOrder:
         sleep(1)
         self.save_within()
         self.register_order_btn()
-        print("hi")
 
     def order_research_without_template(self):
         order_type = self.driver.find_element(By.XPATH, value="//span[@class='k-searchbar']//input")
