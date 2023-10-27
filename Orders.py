@@ -1,6 +1,6 @@
 import json
 from selenium import webdriver
-from selenium.common import NoSuchElementException
+from selenium.common import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
@@ -13,14 +13,16 @@ from time import sleep
 class SheetOrder:
 
     def __init__(self):
+        self.au_dit_reason = None
         self.module_name = None
-        self.order_id = None
-        self.order_id_manual = None
-        self.export_order_id = None
+        self.sheet_ordr_id = None
+        self.sheet_order_id_manual = None
+        self.sheet_ordr_id_export = None
         self.driver = webdriver.Chrome()
         self.driver.maximize_window()
+        self.action = ActionChains(self.driver)
 
-        """ To open data1.json and read the data as jsonfield,
+        """ To open "Fill_me.json" and read the data as jsonfield,
             load the jsonfield data into self.data
 
             also can get any data values from the JSON field by using like self.data['FIELD NAME']
@@ -29,53 +31,85 @@ class SheetOrder:
         with open("Fill_me.json", 'r') as jsonfield:
             self.data = json.load(jsonfield)
 
-        """ Example: self.data['LOGIN']['username'] is assigned to self.username parameters """
+        """ Example: 
+                self.data['LOGIN']['username'] is assigned to self.username parameters 
+        """
 
+        self.org_id = self.data['LOGIN']['organization_id']
         self.login_url = self.data['LOGIN']['url']
         self.username = self.data['LOGIN']['username']
         self.password = self.data['LOGIN']['password']
-        self.folder_name = self.data['FOLDER CREATION AND RENAME']['folder_name']
-        self.rename_folder = self.data['FOLDER CREATION AND RENAME']['rename_folder']
+        self.fol_name = self.data['FOLDER CREATION AND RENAME']['folder_name']
+        self.rename_fol = self.data['FOLDER CREATION AND RENAME']['rename_folder']
 
-        """ Register order parameters """
-        self.order_type = self.data['ORDER SHEET TEMPLATE']['order_type']
-        self.projects = self.data['ORDER SHEET TEMPLATE']['projects']
-        self.task = self.data['ORDER SHEET TEMPLATE']['task']
-        self.select_sheet_temp = self.data['ORDER SHEET TEMPLATE']['select_sheet_temp']
-        self.sample = self.data['ORDER SHEET TEMPLATE']['sample']
-        self.keyword = self.data['ORDER SHEET TEMPLATE']['keyword']
+        """ Register sheet order parameters """
+        self.sheet_order_type = self.data['REGISTER SHEET ORDER FIELDS']['sheet_order_type']
+        self.projects = self.data['REGISTER SHEET ORDER FIELDS']['projects']
+        self.task = self.data['REGISTER SHEET ORDER FIELDS']['task']
+        self.select_sheet_temp = self.data['REGISTER SHEET ORDER FIELDS']['select_sheet_temp']
+        self.sample = self.data['REGISTER SHEET ORDER FIELDS']['sample']
+        self.keyword = self.data['REGISTER SHEET ORDER FIELDS']['keyword']
 
-        self.order_id_manual = self.data['MANUAL ORDER ID PROCESS']['order_id_manual']
+        self.sheet_order_id_manual = self.data['SHEET ORDER ID MANUAL PROCESS']['sheet_order_id_manual']
+
+        """ Audit trail """
+        self.audit_reason = self.data['AUDIT TRAIL']['audit_trail_reason']
+        self.audit_cmts = self.data['AUDIT TRAIL']['audit_trail_cmts']
 
         """ Data fill sheet order parameters """
+        self.cellno_alert = self.data['GENERAL FIELDS SHEET ORDER']['ALERT']['cell_no']
         self.notify_before = self.data['GENERAL FIELDS SHEET ORDER']['ALERT']['notify_before_days']
         self.alert_summary = self.data['GENERAL FIELDS SHEET ORDER']['ALERT']['alert_summary']
+
+        self.cellno_mand_field = self.data['GENERAL FIELDS SHEET ORDER']['MANDATORY FIELD']['cell_no']
         self.mandatory_field = self.data['GENERAL FIELDS SHEET ORDER']['MANDATORY FIELD']['mandatory_value']
+
+        self.cellno_date = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL DATE']['cell_no']
+        self.manual_date = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL DATE']['manual_date']
+
+        self.cellno_date_time = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL DATA AND TIME']['cell_no']
         self.manual_date_time = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL DATA AND TIME']['manual_date_time']
+
+        self.cellno_manual_field = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL FIELD']['cell_no']
         self.manual_field = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL FIELD']['manual_field']
+
+        self.cellno_time = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL TIME']['cell_no']
         self.manual_time = self.data['GENERAL FIELDS SHEET ORDER']['MANUAL TIME']['manual_time']
+
+        self.cellno_multi_combo = self.data['GENERAL FIELDS SHEET ORDER']['MULTISELECT COMBOBOX']['cell_no']
+
+        self.cellno_numeric_field = self.data['GENERAL FIELDS SHEET ORDER']['NUMERIC FIELD']['cell_no']
         self.numeric_field = self.data['GENERAL FIELDS SHEET ORDER']['NUMERIC FIELD']['numeric_field']
+
+        self.cellno_text_wrap = self.data['GENERAL FIELDS SHEET ORDER']['TEXT WRAPPER']['cell_no']
         self.text_wrap = self.data['GENERAL FIELDS SHEET ORDER']['TEXT WRAPPER']['text_wrap']
+
+        self.cellno_esign = self.data['GENERAL FIELDS SHEET ORDER']['E-SIGN']['cell_no']
         self.esign_pwd = self.data['GENERAL FIELDS SHEET ORDER']['E-SIGN']['esign_pwd']
         self.esign_cmts = self.data['GENERAL FIELDS SHEET ORDER']['E-SIGN']['esign_cmts']
 
         """ Icons """
-        self.hyper_link = self.data['ICONS']['HYPERLINK']['hyper_link']
-        self.attach_path = self.data['ICONS']['ATTACHMENTS']['attach_path']
+        self.cellno_hyper_link = self.data['GENERAL FIELDS SHEET ORDER']['ICONS HYPERLINK']['cell_no']
+        self.hyper_link = self.data['GENERAL FIELDS SHEET ORDER']['ICONS HYPERLINK']['hyper_link']
+        self.attach_path = self.data['GENERAL FIELDS SHEET ORDER']['ICONS ATTACHMENTS']['attach_path']
 
         """ Order workflow steps"""
-        self.work_flow_steps = self.data['ORDER WORKFLOW']['work_flow_steps']
+        self.work_flow_steps = self.data['SHEET ORDER WORKFLOW']['work_flow_steps']
 
     def login(self):
-        self.driver.get(self.login_url)
+        self.driver.get(self.login_url[1])
+        self.driver.find_element(By.XPATH, "//input[@id='idUsername']").send_keys(self.org_id[1])
+        sleep(3)
+        self.driver.find_element(By.ID, "inputText").click()
+        sleep(3)
         uname = self.driver.find_element(By.ID, "idUsername")
         uname.send_keys(self.username)
         uname.send_keys(Keys.TAB)
+        sleep(3)
         pwd = self.driver.find_element(By.ID, 'idPassword')
         pwd.send_keys(self.password)
-        sleep(2)
         pwd.send_keys(Keys.ENTER)
-        sleep(12)
+        sleep(15)
         print(self.driver.title)
 
     def search_module(self):
@@ -87,6 +121,21 @@ class SheetOrder:
         action.click(module_click).perform()
         sleep(10)
 
+    def audit_trail(self):
+        if self.driver.find_element(By.CSS_SELECTOR, "button#audittrail_closeform").is_enabled():
+            sleep(2)
+            audit_pwd = self.driver.find_element(By.NAME, "Password")
+            audit_pwd.send_keys(self.password)
+            sleep(2)
+            aud_reason = self.driver.find_element(By.ID, "reasoncode")
+            Select(aud_reason).select_by_visible_text(self.au_dit_reason)
+            sleep(1)
+            audit_cmt = self.driver.find_element(By.NAME, "Comment")
+            audit_cmt.send_keys(self.audit_cmts)
+            sleep(1)
+            submit_btn = self.driver.find_element(By.CSS_SELECTOR, "button#audittrail_submitbtn>span")
+            submit_btn.click()
+
     def orders(self):
         # ele = WebDriverWait(self.driver, 50)
         # ele.until(ec.visibility_of_element_located((By.XPATH,
@@ -96,7 +145,7 @@ class SheetOrder:
             sleep(2)
             self.register_sheet_orders()
         except NoSuchElementException:
-            print("NoSuchElementException:", "Can't find Orders button at left so global search will work  ")
+            print("NoSuchElementException:", "Can't find Orders button at left so global search will work")
             if NoSuchElementException:
                 self.module_name = "Sheet Orders"
                 self.search_module()
@@ -115,7 +164,7 @@ class SheetOrder:
         new_folder.click()
         sleep(1)
         folder_name = self.driver.find_element(By.XPATH, "//div[@class='form-group']//input")
-        folder_name.send_keys(self.folder_name)
+        folder_name.send_keys(self.fol_name)
         sleep(1)
 
         """ Visibility of new folder creation. 
@@ -134,22 +183,28 @@ class SheetOrder:
         add_btn.click()
         sleep(2)
 
-        if ("FOLDER NAME ALREADY EXISTS"
-                == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
-            labexistcount = self.folder_name + '_' + str(1)
-            sleep(1)
-            new_folder.click()
-            sleep(1)
-            folder_name = self.driver.find_element(By.XPATH, "//div[@class='form-group']//input")
-            folder_name.send_keys(labexistcount)
-            sleep(2)
-            add_btn = self.driver.find_element(By.CSS_SELECTOR, "button[value='add']")
-            add_btn.click()
-            sleep(2)
+        try:
+            if ("FOLDER NAME ALREADY EXISTS"
+                    == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
+                labexistcount = self.fol_name + '_' + str(1)
+                sleep(1)
+                new_folder.click()
+                sleep(1)
+                folder_name = self.driver.find_element(By.XPATH, "//div[@class='form-group']//input")
+                folder_name.send_keys(labexistcount)
+                sleep(2)
+                add_btn = self.driver.find_element(By.CSS_SELECTOR, "button[value='add']")
+                add_btn.click()
+                sleep(2)
+        except NoSuchElementException:
+            print("Folder name exist popup not execute")
 
     def rename_folder(self):
         action = ActionChains(self.driver)
-        select_folder = self.driver.find_element(By.XPATH, "(//span[text()='hoi'])[2]")
+        sort_by = self.driver.find_element(By.XPATH, "//button[@class='k-button k-button-icon']//span")
+        action.click(sort_by).send_keys(Keys.ARROW_DOWN + Keys.ENTER).perform()
+        sleep(2)
+        select_folder = self.driver.find_element(By.XPATH, "(//span[text()='" + self.fol_name + "'])[2]")
         select_folder.click()
         print(select_folder.text)
         action.context_click(select_folder).perform()
@@ -160,7 +215,7 @@ class SheetOrder:
         rename = self.driver.find_element(By.XPATH, "//div[contains"
                                                     "(@class,'k-content k-window-content')]//input[1]")
         rename.clear()
-        rename.send_keys(self.rename_folder)
+        rename.send_keys(self.rename_fol)
         sleep(1)
         rename_btn = self.driver.find_element(
             By.XPATH, "//div[@class='k-dialog-buttongroup k-dialog-button-layout-stretched']//button[1]")
@@ -169,7 +224,7 @@ class SheetOrder:
 
     def delete_folder(self):
         action = ActionChains(self.driver)
-        select_folder = self.driver.find_element(By.XPATH, "(//span[text()='ELN'])[2]")
+        select_folder = self.driver.find_element(By.XPATH, "(//span[text()='" + self.rename_fol + "'])[2]")
         select_folder.click()
         action.context_click(select_folder).perform()
         sleep(1)
@@ -185,9 +240,8 @@ class SheetOrder:
         sleep(2)
 
     def order_sheet_template(self):
-        action = ActionChains(self.driver)
         order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
-        order_type.send_keys(self.order_type + Keys.ENTER)
+        order_type.send_keys(self.sheet_order_type[0] + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
         projects.send_keys(self.projects + Keys.ENTER)
@@ -196,12 +250,12 @@ class SheetOrder:
         task.send_keys(self.task + Keys.ENTER)
         sleep(1)
 
-        if ("No sheet templates have been mapped with this task".upper()
-                == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
-            task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
-            task.clear()
-            task.send_keys("Automation 2" + Keys.ENTER)
-            sleep(2)
+        try:
+            if ("No sheet templates have been mapped with this task".upper()
+                    == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
+                print(self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text)
+        except NoSuchElementException:
+            pass
 
         select_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
         select_sample.send_keys(self.sample + Keys.ENTER)
@@ -220,11 +274,11 @@ class SheetOrder:
 
         if ("PLEASE SELECT THE SHEET"
                 == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
-            print("please select the sheet")
+            print(self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text)
 
     def order_research_without_template(self):
-        order_type = self.driver.find_element(By.XPATH, value="//span[@class='k-searchbar']//input")
-        order_type.send_keys(self.order_type + Keys.ENTER)
+        order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
+        order_type.send_keys(self.sheet_order_type[1] + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
         projects.send_keys(self.projects + Keys.ENTER)
@@ -245,8 +299,8 @@ class SheetOrder:
         self.register_order_btn()
 
     def excel_order(self):
-        order_type = self.driver.find_element(by="xpath", value="//span[@class='k-searchbar']//input")
-        order_type.send_keys(self.order_type + Keys.ENTER)
+        order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
+        order_type.send_keys(self.sheet_order_type[3] + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
         projects.send_keys(self.projects + Keys.ENTER)
@@ -261,8 +315,8 @@ class SheetOrder:
         self.register_order_btn()
 
     def sheet_validation(self):
-        order_type = self.driver.find_element(by="xpath", value="//span[@class='k-searchbar']//input")
-        order_type.send_keys(self.order_type + Keys.ENTER)
+        order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
+        order_type.send_keys(self.sheet_order_type[4] + Keys.ENTER)
         sleep(1)
         projects = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
         projects.send_keys(self.projects + Keys.ENTER)
@@ -282,28 +336,42 @@ class SheetOrder:
     def register_order_btn(self):
         regorderbtn = self.driver.find_element(By.XPATH, "//button[contains(@class,'btn btn-user')]")
         regorderbtn.click()
-        sleep(5)
+        try:
+            self.audit_cmts = "Sheet order registered by Automation"
+            self.au_dit_reason = self.audit_reason[0]
+            self.audit_trail()
+        except ElementNotInteractableException:
+            print("Audit trail is not enabled for register order button")
+        finally:
+            sleep(3)
 
-    def process_order(self):  # process order grid button click
+    def process_order_sheet(self):  # process order grid button click
 
-        if self.order_id_manual == "":
+        if self.sheet_order_id_manual == "":
             so_id = self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]")
             print(so_id.text)
             split_id = str(so_id.text).split()
-            self.order_id = split_id[0].split(":")[1]
-            self.export_order_id = self.order_id
-            print(self.order_id)
-            order_grid_view = self.driver.find_element(By.XPATH, "//span[text()='" + self.order_id + "']")
+            self.sheet_ordr_id = split_id[0].split(":")[1]
+            self.sheet_ordr_id_export = self.sheet_ordr_id
+            print(self.sheet_ordr_id)
+            order_grid_view = self.driver.find_element(By.XPATH, "//span[text()='" + self.sheet_ordr_id + "']")
             order_grid_view.click()
         else:
-            order_grid_view = self.driver.find_element(By.XPATH, "//span[text()='" + self.order_id_manual + "']")
+            order_grid_view = self.driver.find_element(By.XPATH, "//span[text()='" + self.sheet_order_id_manual + "']")
             order_grid_view.click()
             sleep(1)
-        process_order = self.driver.find_element(By.XPATH, "(//span[@class='clsorderopenonlist'])[1]")
-        process_order.click()
-        sleep(10)
+        process_order_btn = self.driver.find_element(By.XPATH, "(//span[@class='clsorderopenonlist'])[1]")
+        process_order_btn.click()
+        try:
+            self.audit_cmts = "Process order sheet opened by Automation"
+            self.au_dit_reason = self.audit_reason[1]
+            self.audit_trail()
+        except ElementNotInteractableException:
+            print("Audit trail is not enabled for process order sheet")
+        finally:
+            sleep(10)
 
-    def name_box(self, cellno=None):
+    def name_box(self, cellno):
         cell_box = self.driver.find_element(By.XPATH, "//input[@title='Name Box']")
         cell_box.clear()
         cell_box.send_keys(cellno + Keys.ENTER)
@@ -318,8 +386,6 @@ class SheetOrder:
         sleep(3)
 
     def data_fill_sheet_order(self):
-
-        action = ActionChains(self.driver)
 
         """ Add_Resource """
         # add_resource_dd = self.driver.find_element(By.XPATH, "//div[@class='k-button k-spreadsheet-editor-button']//span[1]")
@@ -345,7 +411,7 @@ class SheetOrder:
         # sleep(5)
 
         """ Alert """
-        so.name_box("A" + str(5))
+        self.name_box(self.cellno_alert)
         alert_dd = self.driver.find_element(By.XPATH, "//span[contains(@class,'k-icon k-icon')]")
         alert_dd.click()
         sleep(2)
@@ -355,15 +421,21 @@ class SheetOrder:
         sleep(1)
         self.driver.find_element(By.LINK_TEXT, "29").click()
         sleep(2)
-        notify_before = self.driver.find_element(By.XPATH,
-                                                 "//span[contains(@class,'k-numeric-wrap k-state-default')]//input[1]")
-        notify_before.send_keys(self.notify_before + Keys.TAB)
-        sleep(1)
-        summary = self.driver.find_element(By.CSS_SELECTOR, ".k-textbox[data-bind='value: Summary']")
-        summary.clear()
-        sleep(1)
-        summary.send_keys(self.alert_summary + Keys.TAB + Keys.ENTER)
-        sleep(3)
+        try:
+            notify_before = self.driver.find_element(By.XPATH, "//span[contains(@class,'k-numeric-wrap k-state-default')]//input[1]")
+            # notify_before = self.driver.find_element(By.XPATH, "//span[contains(@class,'k-widget k-numerictextbox')]")
+            self.action.click(notify_before).send_keys(self.notify_before + Keys.TAB).perform()
+            sleep(1)
+            summary = self.driver.find_element(By.XPATH, "//label[text()=' Summary  ']/following::textarea")
+            summary.clear()
+            sleep(1)
+            self.action.click(summary).send_keys(self.alert_summary + Keys.TAB + Keys.ENTER).perform()
+            sleep(3)
+        except NoSuchElementException or ElementNotInteractableException:
+            if NoSuchElementException or ElementNotInteractableException:
+                cancel_btn = self.driver.find_element(By.XPATH, "//button[@data-bind='click: cancel']")
+                cancel_btn.click()
+                sleep(2)
 
         """ Combobox """
         # combobox_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
@@ -393,45 +465,55 @@ class SheetOrder:
         # sleep(3)
 
         """ Mandatory field """
-        so.name_box("A" + str(17))
-        so.fx(self.mandatory_field)
+        self.name_box(self.cellno_mand_field)
+        self.fx(self.mandatory_field)
 
         """ Manual date """
-        so.name_box("A" + str(19))
-        manual_date_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
-        manual_date_dd.click()
-        caldr = self.driver.find_element(By.XPATH, "//span[contains(@class,'k-picker-wrap k-state-default')]//span")
-        caldr.click()
-        sleep(1)
-        self.driver.find_element(By.LINK_TEXT, "29").click()
-        sleep(2)
-        ok_btn = self.driver.find_element(By.XPATH, "//button[text()='Ok']")
-        ok_btn.click()
+        self.name_box(self.cellno_date)
+        try:
+            manual_date_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
+            manual_date_dd.click()
+            cal_icon = self.driver.find_element(By.XPATH,
+                                                "//span[contains(@class,'k-picker-wrap k-state-default')]//span")
+            self.action.click(cal_icon)
+            sleep(1)
+            self.driver.find_element(By.LINK_TEXT, "24").click()
+            sleep(2)
+            ok_btn = self.driver.find_element(By.XPATH, "//button[text()='Ok']")
+            ok_btn.click()
+        except NoSuchElementException:
+            print("Xpath of Link text is not working ")
+            if NoSuchElementException:
+                cal_input = self.driver.find_element(By.XPATH, "//input[@data-role='datepicker']")
+                self.action.click(cal_input).send_keys(self.manual_date + Keys.TAB + Keys.ENTER).perform()
         sleep(3)
 
         """ Manual date & time """
-        so.name_box("A" + str(21))
-        manual_date_time_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
-        manual_date_time_dd.click()
-        calndr = self.driver.find_element(By.XPATH, "//input[@data-role='datetimepicker']")
-        action.click(calndr).send_keys(self.manual_date_time + Keys.TAB + Keys.ENTER).perform()
+        self.name_box(self.cellno_date_time)
+        try:
+            manual_date_time_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
+            manual_date_time_dd.click()
+            cal_time_input = self.driver.find_element(By.XPATH, "//input[@data-role='datetimepicker']")
+            self.action.click(cal_time_input).send_keys(self.manual_date_time + Keys.TAB + Keys.ENTER).perform()
+        except NoSuchElementException:
+            pass
         sleep(3)
 
         """ Manual field """
-        so.name_box("A" + str(23))
-        so.fx(self.manual_field)
+        self.name_box(self.cellno_manual_field)
+        self.fx(self.manual_field)
 
         """ Manual time """
-        so.name_box("A" + str(25))
+        self.name_box(self.cellno_time)
         manual_time_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
         manual_time_dd.click()
         sleep(2)
         time = self.driver.find_element(By.XPATH, "//input[@data-role='timepicker']")
-        action.click(time).send_keys(self.manual_time + Keys.TAB + Keys.ENTER).perform()
+        self.action.click(time).send_keys(self.manual_time + Keys.TAB + Keys.ENTER).perform()
         sleep(4)
 
         """ Multiselect Combobox """
-        so.name_box("A" + str(27))
+        self.name_box(self.cellno_multi_combo)
         mul_sel_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
         mul_sel_dd.click()
         sleep(2)
@@ -443,42 +525,42 @@ class SheetOrder:
         chk_box.click()
         sleep(1)
         dd = self.driver.find_element(By.CSS_SELECTOR, "div#id-selectBox>div")
-        action.click(dd).send_keys(Keys.TAB * 2 + Keys.ENTER).perform()
+        self.action.click(dd).send_keys(Keys.TAB * 2 + Keys.ENTER).perform()
         sleep(3)
 
         """ Numeric field """
-        so.name_box("A" + str(29))
-        so.fx(self.numeric_field)
+        self.name_box(self.cellno_numeric_field)
+        self.fx(self.numeric_field)
 
         """ Text wrapper """
-        so.name_box("A" + str(41))
-        so.fx(self.text_wrap)
+        self.name_box(self.cellno_text_wrap)
+        self.fx(self.text_wrap)
 
         """ E-Sign """
-        so.name_box("A" + str(37))
+        self.name_box(self.cellno_esign)
         esign_dd = self.driver.find_element(By.XPATH, "//span[@class='k-icon k-icon k-i-arrow-60-down']")
         esign_dd.click()
         sleep(2)
         pwd = self.driver.find_element(By.ID, "focused-input")
         pwd.send_keys(self.esign_pwd)
         # reason = self.driver.find_element(By.XPATH, "//form[@id='SignatureForm']/div[1]/div[1]/div[1]/div[3]/div[2]/span[1]/span[1]/span[1]")
-        # reason.click()
-        # reason.send_keys(Keys.ARROW_DOWN + Keys.ENTER)
+        # action.click(reason).send_keys(Keys.ARROW_DOWN + Keys.ENTER)
         sleep(1)
         cmts = self.driver.find_element(By.XPATH, "//textarea[@class='k-textbox ']")
         cmts.send_keys(self.esign_cmts + Keys.TAB + Keys.ENTER)
         sleep(2)
         fx = self.driver.find_element(By.XPATH, "//div[@class='k-spreadsheet-formula-bar']//div")
-        action.click(fx).send_keys(Keys.ENTER).perform()
-        sleep(2)
+        self.action.click(fx).send_keys(Keys.ENTER).perform()
+        sleep(3)
 
         self.hyperlink()
         self.attachments_inside_order()
 
     def hyperlink(self):
-        so.name_box("C" + str(21))
+        self.name_box(self.cellno_hyper_link)
         hl_icon = self.driver.find_element(By.XPATH, "(//a[contains(@class,'k-button k-button-icon')]//span)[3]")
         hl_icon.click()
+        sleep(2)
         address = self.driver.find_element(By.XPATH, "//div[@class='k-edit-field']//input[1]")
         address.send_keys(self.hyper_link)
         sleep(1)
@@ -492,7 +574,7 @@ class SheetOrder:
         sleep(1)
         filename = self.driver.find_element(By.XPATH, "//div[@class='k-edit-field']//input")
         filename.clear()
-        filename.send_keys(self.export_order_id or self.order_id_manual)
+        filename.send_keys(self.sheet_ordr_id_export or self.sheet_order_id_manual)
         sleep(1)
         save_btn = self.driver.find_element(By.XPATH, "//button[text()='Save']")
         save_btn.click()
@@ -516,14 +598,23 @@ class SheetOrder:
     def save_sheet_order(self):
         save_sheet_order = self.driver.find_element(By.CSS_SELECTOR, "button#SaveSheet>span")
         save_sheet_order.click()
-        sleep(5)
-
-        if "PLEASE ENTER THE MANDATORY FIELD" == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__"
-                                                                                    "']//span[1]").text:
-            print(self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text)
-            sleep(2)
-            so.fx(self.mandatory_field)
-            so.save_sheet_order()
+        try:
+            self.audit_cmts = "Sheet order saved by Automation"
+            self.au_dit_reason = self.audit_reason[2]
+            self.audit_trail()
+        except ElementNotInteractableException:
+            print("Audit trail is not enabled for save sheet order")
+        finally:
+            sleep(5)
+        try:
+            if "PLEASE ENTER THE MANDATORY FIELD" == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__"
+                                                                                        "']//span[1]").text:
+                print(self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text)
+                sleep(2)
+                self.fx(self.mandatory_field)
+                self.save_sheet_order()
+        except NoSuchElementException:
+            pass
 
     def order_workflow(self):
 
@@ -584,75 +675,190 @@ class SheetOrder:
 
 class ProtocolOrder(SheetOrder):
 
-    def __init__(
-            self,
-            proordertype,
-            project,
-            task,
-            sample,
-            keyword,
-            dyaordertype,
-    ):
-        self.proordertype = None
+    def __init__(self):
+        self.protocol_order_id = None
+        self.protocol_order_id_manual = None
+        self.protocol_order_id_export = None
         self.driver = None
         super().__init__()
-        self.proordertype = proordertype
-        self.project = project
-        self.task = task
-        self.sample = sample
-        self.keyword = keyword
-        self.dyaordertype = dyaordertype
+
+        """ Register protocol order parameters """
+        self.protocol_order_type = self.data['REGISTER PROTOCOL ORDER FIELDS']['protocol_order_type']
+        self.project = self.data['REGISTER PROTOCOL ORDER FIELDS']['projects']
+        self.task = self.data['REGISTER PROTOCOL ORDER FIELDS']['task']
+        self.select_pro_temp = self.data['REGISTER PROTOCOL ORDER FIELDS']['select_protocol_template']
+        self.sample = self.data['REGISTER PROTOCOL ORDER FIELDS']['sample']
+        self.keyword = self.data['REGISTER PROTOCOL ORDER FIELDS']['keyword']
+
+        self.protocol_order_id_manual = self.data['PROTOCOL ORDER ID MANUAL PROCESS']['protocol_order_id_manual']
+
+        self.editor_attachments = self.data['EDITORS PROTOCOL ORDER']['ATTACHMENTS']['path']
+        self.editor_image = self.data['EDITORS PROTOCOL ORDER']['IMAGE']['path']
+
+    def orders_for_pro(self):
+        try:
+            self.driver.find_element(By.ID, "left-tabs-example-tab-SheetView").click()
+            sleep(2)
+            self.register_protocol_orders()
+        except NoSuchElementException:
+            print("NoSuchElementException:", "Can't find Orders button at left so global search will work")
+            if NoSuchElementException:
+                self.module_name = "Protocol Orders"
+                self.search_module()
 
     def register_protocol_orders(self):
-        self.driver.find_element(by="xpath", value="//a[@href='/registertask']//span[2]").click()
+        self.driver.find_element(By.XPATH, "//a[@href='/Protocolorder']//span[1]").click()
         sleep(10)
 
     def order_eln_protocol(self):
-        pro_order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
-        pro_order_type.sendkeys(self.proordertype + Keys.ENTER)
-        select_project = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
-        select_project.send_keys(self.project + Keys.ENTER)
-        select_task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
-        select_task.send_keys(self.task + Keys.ENTER)
+        proto_order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
+        proto_order_type.send_keys(self.protocol_order_type[0] + Keys.ENTER)
         sleep(1)
-        select_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
-        select_sample.send_keys(self.sample + Keys.ENTER)
+        sel_project = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
+        sel_project.send_keys(self.project + Keys.ENTER)
         sleep(1)
-        # select_sheet_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
-        # select_sheet_template.send_keys("Default" + Keys.ENTER)
-        # sleep(1)
-        enter_keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
-        enter_keyword.send_keys(self.keyword)
+        sel_task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
+        sel_task.send_keys(self.task + Keys.ENTER)
+        sleep(1)
+
+        try:
+            if ("No Protocol templates have been mapped with this task".upper()
+                    == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
+                print(self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text)
+        except NoSuchElementException:
+            pass
+
+        sel_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
+        sel_sample.send_keys(self.sample + Keys.ENTER)
+        sleep(1)
+
+        if self.select_pro_temp != "":
+            sel_pro_temp = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
+            sel_pro_temp.send_keys("Default" + Keys.ENTER)
+            sleep(1)
+
+        keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
+        keyword.send_keys(self.keyword)
         sleep(1)
         super().save_within()
         super().register_order_btn()
 
     def order_dynamic_protocol(self):
-        pro_order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
-        pro_order_type.sendkeys(self.dyaordertype + Keys.ENTER)
-        select_project = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
-        select_project.send_keys(self.project + Keys.ENTER)
-        select_task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
-        select_task.send_keys(self.task + Keys.ENTER)
+        proto_order_type = self.driver.find_element(By.XPATH, "//span[@class='k-searchbar']//input")
+        proto_order_type.send_keys(self.protocol_order_type[1] + Keys.ENTER)
         sleep(1)
-        select_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
-        select_sample.send_keys(self.sample + Keys.ENTER)
+        sel_project = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[2]")
+        sel_project.send_keys(self.project + Keys.ENTER)
         sleep(1)
-        # select_sheet_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
-        # select_sheet_template.send_keys("Default" + Keys.ENTER)
-        # sleep(1)
-        enter_keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
-        enter_keyword.send_keys(self.keyword)
+        sel_task = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[3]")
+        sel_task.send_keys(self.task + Keys.ENTER)
         sleep(1)
-        super().save_within()
-        super().register_order_btn()
+        sel_sample = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[4]")
+        sel_sample.send_keys(self.sample + Keys.ENTER)
+        sleep(1)
+        sel_proto_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
+        sel_proto_template.send_keys(self.select_pro_temp + Keys.ENTER)
+        sleep(1)
+        keyword = self.driver.find_element(By.XPATH, "//input[@datatype='Text']")
+        keyword.send_keys(self.keyword)
+        sleep(1)
+        self.save_within()
+        self.register_order_btn()
 
-    def main(self):
-        self.proordertype = ["ELN"]
-        self.project = ["ELN"]
-        self.task = ["Automation 3"]
-        self.sample = ["selenium"]
-        self.keyword = ["Automation"]
+        if ("No Protocol selected.".upper()
+                == self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text):
+            print(self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]").text)
+            sel_proto_template = self.driver.find_element(By.XPATH, "(//span[@class='k-searchbar']//input)[5]")
+            sel_proto_template.send_keys("Default template" + Keys.ENTER)
+            sleep(1)
+            super().register_order_btn()
+
+    def process_order_protocol(self):  # process order grid button click
+
+        if self.protocol_order_id_manual == "":
+            so_id = self.driver.find_element(By.XPATH, "//div[@id='__react-alert__']//span[1]")
+            print(so_id.text)
+            split_id = str(so_id.text).split()
+            self.protocol_order_id = split_id[0].split(":")[1]
+            self.protocol_order_id_export = self.protocol_order_id
+            print(self.protocol_order_id)
+            order_grid_view = self.driver.find_element(By.XPATH, "//span[text()='" + self.protocol_order_id + "']")
+            order_grid_view.click()
+        else:
+            order_grid_view = self.driver.find_element(By.XPATH,
+                                                       "//span[text()='" + self.protocol_order_id_manual + "']")
+            order_grid_view.click()
+            sleep(1)
+        process_order_btn = self.driver.find_element(By.XPATH, "(//span[@class='clsorderopenonlist'])[1]")
+        process_order_btn.click()
+        try:
+            self.audit_cmts = "Process order protocol opened by Automation"
+            self.audit_trail()
+        except ElementNotInteractableException:
+            print("Audit trail is not enabled for process_order_protocol")
+        finally:
+            sleep(10)
+
+    def start_btn(self):
+        start = self.driver.find_element(By.CSS_SELECTOR, "button#btn-protocol-start>span")
+        start.click()
+        sleep(2)
+
+    def editors_protocol_order(self):
+
+        """ Data type - Spreadsheet """
+        self.data_fill_sheet_order()
+
+        """ Data type - Attachments """
+        file_input = self.driver.find_element(By.XPATH, "//input[@class='input-file']")
+        file_path = self.editor_attachments
+        file_input.send_keys(file_path)
+        WebDriverWait(self.driver, 50).until(
+            ec.presence_of_element_located((By.XPATH, "//i[@class='fas fa-cloud-download-alt']")))
+
+        link_file = self.driver.find_element(By.XPATH, "(//input[@class='input-file'])[2]")
+        link_file.click()
+        sleep(2)
+        pro_tab = self.driver.find_element(By.XPATH, "(//div[text()='Protocol'])[2]")
+        pro_tab.click()
+        sleep(3)
+        folders = self.driver.find_element(By.XPATH, "(//span[text()='PKR Protocol'])[2]")
+        folders.click()
+        sleep(4)
+        chk_box = WebDriverWait(self.driver, 50).until(
+            ec.presence_of_element_located((By.XPATH, "(//label[text()='B'])[3]/following::input")))
+        # chk_box = self.driver.find_element(By.XPATH, "(//label[text()='B'])[3]/following::input")
+        self.action.click(chk_box).perform()
+        sleep(1)
+        insert_link_btn = self.driver.find_element(By.ID, "btn-linkimage-save")
+        insert_link_btn.click()
+        sleep(2)
+
+        """ Images """
+        file_input = self.driver.find_element(By.XPATH, "(//input[@class='input-file'])[3]")
+        file_path = self.editor_image
+        file_input.send_keys(file_path)
+        WebDriverWait(self.driver, 50).until(
+            ec.presence_of_element_located((By.XPATH, "//p[@class='card-text middle-textarea']//textarea[1]")))
+        img_cmts = self.driver.find_element(By.XPATH, "//p[@class='card-text middle-textarea']//textarea[1]")
+        img_cmts.send_keys("Hi")
+        sleep(2)
+
+        link_file = self.driver.find_element(By.XPATH, "(//input[@class='input-file'])[4]")
+        link_file.click()
+        sleep(2)
+        pro_tab = self.driver.find_element(By.XPATH, "(//div[text()='Protocol'])[2]")
+        pro_tab.click()
+        sleep(3)
+        folders = self.driver.find_element(By.XPATH, "(//span[text()='PKR Protocol'])[2]")
+        folders.click()
+        sleep(1)
+        chk_box = self.driver.find_element(By.XPATH, "(//label[text()='B'])[3]/following::input")
+        chk_box.click()
+        sleep(1)
+        insert_link_btn = self.driver.find_element(By.ID, "btn-linkimage-save")
+        insert_link_btn.click()
+        sleep(5)
 
 
 if __name__ == '__main__':
@@ -667,28 +873,36 @@ if __name__ == '__main__':
 
     so.register_btn()
     so.order_sheet_template()
-
-    # so.process_order()
+    so.process_order_sheet()
     # so.attachments_inside_order()
     # so.export_order()
-    # so.data_fill_sheet_order()
-    # so.save_sheet_order()
-    # so.order_workflow()
+    so.data_fill_sheet_order()
+    so.save_sheet_order()
+    so.order_workflow()
 
     # so.register_btn()
     # so.order_research_without_template()
-    # so.process_order()
+    # so.process_order_sheet()
 
     # so.register_btn()
     # so.excel_order()
-    # so.process_order()
+    # so.process_order_sheet()
 
     # so.register_btn()
     # so.sheet_validation()
-    # so.process_order()
+    # so.process_order_sheet()
 
-    # po = ProtocolOrder()
-    # po.login()
-    # po.register_protocol_orders()
-    # po.register_btn()
+    po = ProtocolOrder()
+    SheetOrder.login(po)
+    po.orders_for_pro()
+
+    # SheetOrder.register_btn(po)
+
     # po.order_eln_protocol()
+    po.process_order_protocol()
+    # po.start_btn()
+    # SheetOrder.data_fill_sheet_order(po)
+    po.editors_protocol_order()
+
+    # po.order_dynamic_protocol()
+    # po.process_order_protocol()
