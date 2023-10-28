@@ -1,0 +1,134 @@
+{
+  "LOGIN":
+  {   "url": ["https://logilabelndevelopement.azurewebsites.net", "https://logilabelntesting.azurewebsites.net"],
+	  "organization_id": ["agaram", "agaramtech.com"],
+	  "username": "PKRautoDEV",
+	  "password": "Zxc!@#123"
+  },
+
+  "FOLDER CREATION AND RENAME":
+  {
+	  "folder_name": "Hoi",
+	  "rename_folder": "ELN"
+  },
+
+  "REGISTER SHEET ORDER FIELDS":
+  {
+	  "sheet_order_type": ["ELN Order - with Template", "Research Activity Order -without Template", "Excel Order", "Sheet Validation"],
+	  "projects": "All general field check",
+	  "task": "All Fields test",
+	  "select_sheet_temp": "",
+	  "sample": "Water",
+	  "keyword": "Automation"
+  },
+
+  "AUDIT TRAIL":
+  {
+	  "audit_trail_reason": ["Registered", "Opened", "saved"],
+	  "audit_trail_cmts": "process order opened"
+  },
+
+  "GENERAL FIELDS SHEET ORDER":
+  {
+	  "ALERT":
+	  {
+		  "cell_no": "A5",
+		  "notify_before_days": "2",
+		  "alert_summary": "2 days before"
+	  },
+	  "MANDATORY FIELD":
+	  {
+		  "cell_no": "A17",
+		  "mandatory_value": "So what"
+	  },
+	  "MANUAL DATE":
+	  {
+		  "cell_no": "A19",
+		  "manual_date": "11/10/2023"
+	  },
+	  "MANUAL DATA AND TIME":
+	  {
+		  "cell_no": "A21",
+		  "manual_date_time": "11/10/2023 02:02:59 pm"
+	  },
+	  "MANUAL FIELD":
+	  {
+		  "cell_no": "A23",
+		  "manual_field": "ELN Automation"
+	  },
+	  "MANUAL TIME":
+	  {
+		  "cell_no": "A25",
+		  "manual_time": "10:15 PM"
+	  },
+	  "MULTISELECT COMBOBOX":
+	  {
+		  "cell_no": "A27"
+	  },
+	  "NUMERIC FIELD":
+	  {
+		  "cell_no": "A29",
+		  "numeric_field": "4"
+	  },
+	  "TEXT WRAPPER":
+	  {
+		  "cell_no": "A41",
+		  "text_wrap": "Hello ELN sheet order - Python selenium"
+	  },
+	  "E-SIGN":
+	  {
+		  "cell_no": "A37",
+		  "esign_pwd": "Zxc!@#123",
+		  "esign_cmts": "general fields are filled by automation"
+	  },
+	  "ICONS HYPERLINK":
+	  {
+		  "cell_no": "D4",
+		  "hyper_link": "https://logilabelntesting.azurewebsites.net/#agaramtech.com"
+	  },
+	  "ICONS ATTACHMENTS":
+	  {
+		  "attach_path": "E:\\ELN\\Sample Template.json"
+	  }
+  },
+
+  "SHEET ORDER WORKFLOW":
+  {
+    "work_flow_steps": "5"
+  },
+
+  "REGISTER PROTOCOL ORDER FIELDS":
+  {
+	  "protocol_order_type": ["ELN Protocol Orders", "Dynamic Protocol Orders"],
+	  "projects": "Making",
+	  "task": "Tea preparation",
+	  "select_protocol_template": "Chai",
+	  "sample": "Water",
+	  "keyword": "Automation"
+  },
+
+  "EDITORS PROTOCOL ORDER":
+  {
+	  "ATTACHMENTS":
+	  {
+		  "path": "E:\\ELN\\TM-22 Detection of Perforations.json"
+	  },
+	  "IMAGE":
+	  {
+		  "path": "E:\\ELN\\Dashboard.png"
+	  }
+  },
+
+
+
+  "SHEET ORDER ID MANUAL PROCESS":
+  {
+	  "sheet_order_id_manual": ""
+
+  },
+  "PROTOCOL ORDER ID MANUAL PROCESS":
+  {
+	  "protocol_order_id_manual": "ELN1003707"
+
+  }
+}
