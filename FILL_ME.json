@@ -24,60 +24,59 @@
 
   "AUDIT TRAIL":
   {
-	  "audit_trail_reason": ["Registered", "Opened", "saved"],
-	  "audit_trail_cmts": "process order opened"
+	  "audit_trail_reason": ["Registered", "Opened", "saved", "Deleted"]
   },
 
   "GENERAL FIELDS SHEET ORDER":
   {
 	  "ALERT":
 	  {
-		  "cell_no": "A5",
+		  "cell_no": "A2",
 		  "notify_before_days": "2",
 		  "alert_summary": "2 days before"
 	  },
 	  "MANDATORY FIELD":
 	  {
-		  "cell_no": "A17",
+		  "cell_no": "A4",
 		  "mandatory_value": "So what"
 	  },
 	  "MANUAL DATE":
 	  {
-		  "cell_no": "A19",
+		  "cell_no": "A6",
 		  "manual_date": "11/10/2023"
 	  },
 	  "MANUAL DATA AND TIME":
 	  {
-		  "cell_no": "A21",
+		  "cell_no": "A8",
 		  "manual_date_time": "11/10/2023 02:02:59 pm"
 	  },
 	  "MANUAL FIELD":
 	  {
-		  "cell_no": "A23",
+		  "cell_no": "A10",
 		  "manual_field": "ELN Automation"
 	  },
 	  "MANUAL TIME":
 	  {
-		  "cell_no": "A25",
+		  "cell_no": "A12",
 		  "manual_time": "10:15 PM"
 	  },
 	  "MULTISELECT COMBOBOX":
 	  {
-		  "cell_no": "A27"
+		  "cell_no": "A14"
 	  },
 	  "NUMERIC FIELD":
 	  {
-		  "cell_no": "A29",
+		  "cell_no": "A16",
 		  "numeric_field": "4"
 	  },
 	  "TEXT WRAPPER":
 	  {
-		  "cell_no": "A41",
+		  "cell_no": "A20",
 		  "text_wrap": "Hello ELN sheet order - Python selenium"
 	  },
 	  "E-SIGN":
 	  {
-		  "cell_no": "A37",
+		  "cell_no": "A18",
 		  "esign_pwd": "Zxc!@#123",
 		  "esign_cmts": "general fields are filled by automation"
 	  },
@@ -94,15 +93,15 @@
 
   "SHEET ORDER WORKFLOW":
   {
-    "work_flow_steps": "5"
+    "order_workflow_count": "3"
   },
 
   "REGISTER PROTOCOL ORDER FIELDS":
   {
 	  "protocol_order_type": ["ELN Protocol Orders", "Dynamic Protocol Orders"],
-	  "projects": "Making",
-	  "task": "Tea preparation",
-	  "select_protocol_template": "Chai",
+	  "projects": "All general field check",
+	  "task": "All Fields test",
+	  "select_protocol_template": "",
 	  "sample": "Water",
 	  "keyword": "Automation"
   },
@@ -116,10 +115,27 @@
 	  "IMAGE":
 	  {
 		  "path": "E:\\ELN\\Dashboard.png"
+	  },
+	  "MULTI-STEP PROCEDURE":
+	  {
+		  "input_type": ["Text", "Number"],
+		  "textbox_place_holder_text": "text by automation",
+		  "textbox_place_holder_number": 2
+	  },
+	  "GRID":
+	  {
+		  "text_column": "ELN",
+		  "numeric": 4
 	  }
   },
 
-
+  "SETUP TEMPLATE & ORDER WORKFLOW":
+  {
+	  "template_levels": ["Initiator", "Reviewer", "Approver"],
+	  "t_assign_user_roles": ["Azure aads", "Azure aads", "Azure aads"],
+	  "order_levels": ["Init", "Revi", "Appro"],
+	  "o_assign_user_roles": ["Azure aads", "Azure aads", "Azure aads"]
+  },
 
   "SHEET ORDER ID MANUAL PROCESS":
   {
@@ -128,7 +144,7 @@
   },
   "PROTOCOL ORDER ID MANUAL PROCESS":
   {
-	  "protocol_order_id_manual": "ELN1003707"
+	  "protocol_order_id_manual": "ELN1003728"
 
   }
 }
